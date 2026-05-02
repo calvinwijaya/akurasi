@@ -128,14 +128,30 @@ function renderMappingBoard() {
     }
 
     mappingState.forEach((grup, gIndex) => {
+        // Cek status isCollapsed dari state (default: false / terbuka)
+        const isHidden = grup.isCollapsed ? 'd-none' : '';
+        const iconChevron = grup.isCollapsed ? 'bi-chevron-down' : 'bi-chevron-up';
+
         // UI Swimlane Card
         let html = `
         <div class="card border-0 shadow-sm mapping-grup">
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-bookmarks me-2"></i>${grup.topik}</h5>
-                ${isAdmin ? `<button class="btn btn-sm btn-danger px-2" onclick="hapusGrup(${gIndex})" title="Hapus Grup"><i class="bi bi-trash"></i></button>` : ''}
+                
+                <!-- Kumpulan Tombol Aksi Kanan -->
+                <div class="d-flex gap-2">
+                    <!-- Tombol Panah Buka/Tutup -->
+                    <button class="btn btn-sm btn-outline-light border-0 px-2" onclick="toggleGrup(${gIndex}, this)" title="Sembunyikan/Tampilkan Isi Grup">
+                        <i class="bi ${iconChevron} fs-6"></i>
+                    </button>
+                    
+                    <!-- Tombol Hapus Grup (Hanya Admin) -->
+                    ${isAdmin ? `<button class="btn btn-sm btn-danger px-2" onclick="hapusGrup(${gIndex})" title="Hapus Grup"><i class="bi bi-trash"></i></button>` : ''}
+                </div>
             </div>
-            <div class="card-body p-2 bg-light">
+            
+            <!-- Berikan ID dinamis pada card-body agar bisa ditarget oleh fungsi toggle -->
+            <div class="card-body p-2 bg-light ${isHidden}" id="bodyGrup${gIndex}">
                 <div class="row g-2">
                     ${renderKolom('S2', 'LAMTEK Magister (Master)', grup, gIndex, 'primary')}
                     ${renderKolom('S3', 'LAMTEK Doktor', grup, gIndex, 'primary')}
@@ -163,6 +179,14 @@ function renderKolom(idKolom, judulKolom, grupData, gIndex, colorTheme) {
 
         let titleText = idKolom === 'IABEE' ? dataDetail.Kriteria : dataDetail.Indikator;
         let badgeRef = idKolom === 'IABEE' ? dataDetail.Referensi_Tabel_Suplemen : dataDetail.No_Tabel_LKPS;
+        let badgeRefHtml = '<span class="badge border border-dark text-dark">-</span>';
+        if (badgeRef) {
+            badgeRefHtml = `<span class="badge border border-dark text-dark text-truncate d-inline-block shadow-sm" 
+                                  style="max-width: 100px; font-size: 0.65rem; vertical-align: bottom;" 
+                                  title="${badgeRef}">
+                                  ${badgeRef}
+                            </span>`;
+        }
         
         // Ambil data untuk keperluan filter
         let prioritas = dataDetail.Prioritas || dataDetail.Bobot_Perhatian || "Sedang"; 
@@ -179,20 +203,23 @@ function renderKolom(idKolom, judulKolom, grupData, gIndex, colorTheme) {
              data-tipe="${tipe}">
             <div class="card-body p-2 position-relative">
                 ${isAdmin ? `<button class="btn btn-sm text-danger position-absolute top-0 end-0 p-1" onclick="event.stopPropagation(); hapusItemGrup(${gIndex}, '${idKolom}', ${iIndex})" style="z-index: 10;"><i class="bi bi-x-circle-fill"></i></button>` : ''}
-                <div class="fw-bold small text-truncate pe-3" style="max-width: 90%;" title="${titleText}">${titleText}</div>
-                <div class="d-flex justify-content-between align-items-end mt-1">
-                    <span class="badge bg-secondary" style="font-size: 0.65rem;">${itemId}</span>
-                    <span class="badge border border-dark text-dark" style="font-size: 0.65rem;">${badgeRef || '-'}</span>
+                
+                <div class="fw-bold small text-truncate pe-3" style="max-width: 100%;" title="${titleText}">${titleText}</div>
+                
+                <div class="d-flex justify-content-between align-items-end mt-2 gap-2">
+                    <span class="badge bg-secondary flex-shrink-0 shadow-sm" style="font-size: 0.65rem;">${itemId}</span>
+                    
+                    ${badgeRefHtml}
                 </div>
             </div>
         </div>`;
     });
 
-    const addBtn = isAdmin ? `<button class="btn btn-sm btn-outline-${colorTheme} w-100 fw-bold mt-1" onclick="bukaModalTambah('${grupData.id_grup}', '${idKolom}')"><i class="bi bi-plus-lg"></i> Tambah</button>` : '';
+    const addBtn = isAdmin ? `<button class="btn btn-sm btn-outline-${colorTheme} w-100 fw-bold mt-1 shadow-sm" onclick="bukaModalTambah('${grupData.id_grup}', '${idKolom}')"><i class="bi bi-plus-lg"></i> Tambah</button>` : '';
 
     return `
     <div class="col-md-3">
-        <div class="p-2 bg-white border rounded h-100">
+        <div class="p-2 bg-white border rounded h-100 shadow-sm">
             <h6 class="fw-bold text-center text-${colorTheme} border-bottom pb-2 mb-2" style="font-size: 0.85rem;">${judulKolom}</h6>
             <div class="item-container" style="min-height: 50px;">
                 ${cardsHtml}
@@ -387,6 +414,31 @@ function hapusGrup(grupIndex) {
             saveMappingToGAS(); 
         }
     });
+}
+
+// ==============================================================
+// TOGGLE HIDE/SHOW GRUP (COLLAPSE)
+// ==============================================================
+function toggleGrup(gIndex, btnEl) {
+    const bodyEl = document.getElementById(`bodyGrup${gIndex}`);
+    const icon = btnEl.querySelector('i');
+    
+    // Pastikan properti isCollapsed ada di dalam objek state
+    if (typeof mappingState[gIndex].isCollapsed === 'undefined') {
+        mappingState[gIndex].isCollapsed = false;
+    }
+
+    if (mappingState[gIndex].isCollapsed) {
+        // Jika sedang tertutup -> Buka
+        bodyEl.classList.remove('d-none');
+        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+        mappingState[gIndex].isCollapsed = false;
+    } else {
+        // Jika sedang terbuka -> Tutup
+        bodyEl.classList.add('d-none');
+        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+        mappingState[gIndex].isCollapsed = true;
+    }
 }
 
 // ==============================================================
