@@ -237,11 +237,13 @@ async function fetchDashboardData() {
             fetch(`${GAS_AKURASI}?action=getMaster&sheetName=LAMTEK_Doktor`).then(r => r.json())
         ]);
 
-        // Munculkan kontainer grafik
-        document.getElementById("dashboardExtras").classList.remove("d-none");
-
-        renderPieCharts(resS1, resS2, resS3);
-        renderPriorityTable(resIabee, resS1, resS2, resS3);
+        const dashboardExtrasEl = document.getElementById("dashboardExtras");
+        if (dashboardExtrasEl) {
+            dashboardExtrasEl.classList.remove("d-none");
+            renderPieCharts(resS1, resS2, resS3);
+            renderPriorityTable(resIabee, resS1, resS2, resS3);
+        }
+        
     } catch (e) {
         console.error("Gagal memuat data grafik/tabel:", e);
     }

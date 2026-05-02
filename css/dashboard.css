@@ -166,3 +166,18 @@ body {
     border-radius: 50%;
     margin-top: -5px;
 }
+
+/* --- TAMBAHAN CSS UNTUK HEADER TABEL IABEE --- */
+.table-iabee-header th {
+    /* Menggunakan gradien hijau tua yang elegan (success color) */
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
+    color: white !important;
+    vertical-align: middle;
+    border-color: #0f5132 !important; /* Warna garis batas hijau sangat tua */
+    
+    /* Membuat header menempel (sticky) di atas saat di-scroll ke bawah */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Bayangan tipis ke bawah */
+}
