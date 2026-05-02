@@ -1,0 +1,168 @@
+body {
+    min-height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    min-width: 250px;
+    max-width: 350px;
+    background-color: #0d6efd;
+    color: white;
+    transition: all 0.3s;
+}
+
+.sidebar.collapsed {
+    min-width: 70px;
+    max-width: 70px;
+}
+
+.sidebar .nav-link {
+    color: white;
+    white-space: nowrap;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255,255,255,0.3);
+}
+
+.sidebar .nav-link .label {
+    transition: opacity 0.3s;
+}
+
+.sidebar.collapsed .nav-link .label {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar .toggle-btn {
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+    color: white;
+}
+
+.sidebar.collapsed .toggle-btn {
+    justify-content: center;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    background-color: #f8f9fa;
+    transition: margin-left 0.3s;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.nav-link.active {
+    background-color: #0d6efd; /* Warna biru Bootstrap */
+    color: white !important;
+    border-radius: 5px;
+}
+
+.nav-link.active i {
+    color: white !important;
+}
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* --- Tambahan CSS Profil Sidebar --- */
+.user-profile {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.profile-img {
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background-color: white; /* Antisipasi jika background foto transparan */
+}
+
+
+/* Saat sidebar dikecilkan */
+.sidebar.collapsed .profile-img {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+.sidebar.collapsed .user-profile .label {
+    opacity: 0;
+    height: 0;
+    pointer-events: none;
+    margin: 0 !important;
+    overflow: hidden;
+}
+
+.sidebar.collapsed hr.label {
+    display: none;
+}
+
+/* --- Tambahan CSS Container Status Akreditasi --- */
+#akreditasiContainer .card {
+    transition: transform 0.3s ease;
+    border-radius: 15px;
+}
+
+#akreditasiContainer .card:hover {
+    transform: translateY(-5px);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.cursor-pointer:hover {
+    opacity: 0.8;
+}
+
+.badge {
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+}
+
+/* --- TAMBAHAN CSS UNTUK HEADER TABEL LAMTEK --- */
+.table-custom-header th {
+    background-color: #0d6efd !important; /* Biru yang sama dengan sidebar */
+    color: white !important;
+    vertical-align: middle;
+    border-color: #0a53be !important; /* Warna garis batas sedikit lebih gelap agar tegas */
+    
+    /* Bonus: Membuat header menempel (sticky) di atas saat di-scroll ke bawah */
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* --- TAMBAHAN CSS UNTUK INPUT RANGE (SLIDER) --- */
+#sliderGlobalKualitatif {
+    -webkit-appearance: none;
+}
+
+#sliderGlobalKualitatif::-webkit-slider-runnable-track {
+    height: 4px;
+    background: #aaa;
+    border-radius: 2px;
+}
+
+#sliderGlobalKualitatif::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 14px;
+    width: 14px;
+    background: #0d6efd;
+    border-radius: 50%;
+    margin-top: -5px;
+}

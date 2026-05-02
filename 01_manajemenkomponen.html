@@ -1,0 +1,158 @@
+<div class="container-fluid py-4">
+    <!-- Header Card -->
+    <div class="card shadow-sm mb-4 border-0 border-top border-dark border-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold text-dark mb-0"><i class="bi bi-diagram-3 me-2"></i>Manajemen Komponen & Relasi</h2>
+                <p class="text-muted mb-0">Pemetaan relasi Universal lintas standar akreditasi (Master Junction).</p>
+            </div>
+            
+            <div class="d-flex gap-2 align-items-center">
+                <!-- Tombol ini hanya akan ditampilkan via JS jika rolenya Admin -->
+                <button class="btn btn-primary shadow-sm fw-bold admin-only d-none" id="btnSimpanRelasi">
+                    <i class="bi bi-cloud-upload me-2"></i>Simpan Relasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Action Controls -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light rounded">
+            <div class="row g-3 align-items-end mb-3">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Prioritas (Gabungan)</label>
+                    <select id="filterPrioritas" class="form-select form-select-sm">
+                        <option value="Semua">Semua</option>
+                        <option value="Tinggi">Tinggi / Ya</option>
+                        <option value="Sedang">Sedang</option>
+                        <option value="Rendah">Rendah / Tidak</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Syarat Unggul (LAMTEK)</label>
+                    <select id="filterUnggul" class="form-select form-select-sm">
+                        <option value="Semua">Semua</option>
+                        <option value="Ya">Ya (Syarat Unggul)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Tipe Indikator (LAMTEK)</label>
+                    <select id="filterTipe" class="form-select form-select-sm">
+                        <option value="Semua">Semua</option>
+                        <option value="Kualitatif">Kualitatif</option>
+                        <option value="Kuantitatif">Kuantitatif</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Cari Kriteria / Item</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="filterSearch" class="form-control" placeholder="Ketik kata kunci...">
+                        <button class="btn btn-outline-danger" type="button" id="btnResetFilter" title="Reset Filter">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-sm btn-dark w-100 fw-bold admin-only d-none" id="btnBuatGrup">
+                        <i class="bi bi-folder-plus me-1"></i> Buat Grup Baru
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mapping Board (Swimlanes) -->
+    <div class="card shadow-sm border-0 bg-transparent">
+        <!-- Main Board Container (Diisi dinamis oleh JS) -->
+        <div id="mappingBoardArea" class="d-flex flex-column gap-4">
+            <!-- Loading Placeholder -->
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p>Memuat Matriks Relasi Universal...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Buat Grup Baru -->
+<div class="modal fade" id="modalBuatGrup" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold">Buat Topik Grup Baru</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-bold">Judul / Topik Universal</label>
+                <input type="text" class="form-control" id="inputTopikGrup" placeholder="Misal: Kurikulum dan CPL">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary fw-bold" id="btnSimpanGrupBaru">Buat Grup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Kriteria/Indikator -->
+<div class="modal fade" id="modalTambahItem" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">Tambah Komponen ke Matriks</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="targetGrupId">
+                <input type="hidden" id="targetKolomId">
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Target Grup Topik</label>
+                        <input type="text" class="form-control bg-light fw-bold text-primary" id="displayTargetGrup" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Jenis Akreditasi (Kolom)</label>
+                        <input type="text" class="form-control bg-light fw-bold text-success" id="displayTargetKolom" readonly>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Filter Cascading (Dinamis via JS tergantung Kolom) -->
+                <div id="cascadingFiltersArea"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary fw-bold" id="btnPilihItem">Tambahkan Komponen</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail & Edit Prioritas Komponen -->
+<div class="modal fade" id="modalDetailKomponen" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-info-square me-2"></i>Detail Komponen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailKomponenBody">
+                <!-- Diisi Dinamis oleh JavaScript -->
+            </div>
+            <div class="modal-footer bg-light">
+                <input type="hidden" id="detailIdKolom">
+                <input type="hidden" id="detailItemId">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <!-- Tombol ini hanya muncul jika role Admin -->
+                <button type="button" class="btn btn-primary fw-bold admin-only d-none" id="btnSimpanPrioritas">
+                    <i class="bi bi-save me-1"></i> Simpan Perubahan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

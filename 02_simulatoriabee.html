@@ -1,0 +1,246 @@
+<div class="container-fluid py-4">
+    <!-- Header Card -->
+    <div class="card shadow-sm mb-4 border-0 border-top border-success border-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold text-success mb-0"><i class="bi bi-globe me-2"></i>Simulator IABEE</h2>
+                <p class="text-muted mb-0">Simulasi evaluasi akreditasi internasional berbasis kualitatif dan portofolio (A/C/W/D).</p>
+            </div>
+            
+            <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-dark shadow-sm" id="btnRiwayatIabee">
+                    <i class="bi bi-clock-history me-2"></i>Riwayat Simulasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Global Controls -->
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="card-body bg-light rounded">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Prioritas Evaluasi</label>
+                    <select id="filterPrioritas" class="form-select form-select-sm">
+                        <option value="Semua">Semua Prioritas</option>
+                        <option value="Tinggi">Tinggi</option>
+                        <option value="Sedang">Sedang</option>
+                        <option value="Rendah">Rendah</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">Kelompok Penilaian (Kriteria)</label>
+                    <select id="filterKelompok" class="form-select form-select-sm">
+                        <option value="Semua">Semua Kelompok</option>
+                        <option value="1. Orientasi Profil Profesional dan Kompetensi Lulusan">1. Orientasi Profil Profesional...</option>
+                        <option value="2. Implementasi Pembelajaran">2. Implementasi Pembelajaran</option>
+                        <option value="3. Asesmen Capaian Pembelajaran">3. Asesmen Capaian Pembelajaran</option>
+                        <option value="4. Perbaikan Mutu Berkelanjutan">4. Perbaikan Mutu Berkelanjutan</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">Cari Kriteria / Item Evaluasi</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="filterSearch" class="form-control" placeholder="Ketik kata kunci...">
+                        <button class="btn btn-outline-danger" type="button" id="btnResetFilter" title="Reset Filter">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>
+
+    <!-- Table Simulator -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 100vh; overflow-y: auto;">
+                <table class="table table-bordered table-hover align-middle mb-0" id="tableSimulatorIabee" style="min-width: 1400px;">
+                    <thead class="text-center align-middle" style="background-color: #198754; color: white; font-size: 0.85rem; position: sticky; top: 0; z-index: 2;">
+                        <tr>
+                            <th width="15%">Kriteria</th>
+                            <th width="20%">Sub-Kriteria</th>
+                            <th width="35%">Kriteria Evaluasi</th>
+                            <th width="10%">Referensi Tabel</th>
+                            <th width="10%">Hasil Evaluasi</th>
+                            <th width="10%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyIabee" style="font-size: 0.85rem; background-color: #ffffff;">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                    <tfoot class="table-dark" style="position: sticky; bottom: -1px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.2);">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold fs-5 border-bottom-0 py-3">PREDIKSI AKREDITASI IABEE:</td>
+                            <td colspan="2" class="text-center fw-bold border-bottom-0 py-3" id="hasilAkreditasiIabee">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white text-end py-3">
+            <button class="btn btn-outline-secondary me-2" id="btnExportCSVIabee">
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i>Export CSV
+            </button>
+            <button class="btn btn-success" id="btnSimpanSimulasiIabee">
+                <i class="bi bi-save me-2"></i>Simpan Simulasi Ini
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Input Nilai IABEE -->
+<div class="modal fade" id="modalInputIabee" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2"></i>Evaluasi Item IABEE</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- Bantuan Integrasi LAMTEK (Personalized per Item) -->
+                <div class="alert alert-primary border-primary d-flex align-items-start shadow-sm mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill fs-4 me-3 mt-1"></i>
+                    <div class="flex-grow-1" id="lamtekHelperArea">
+                        <h6 class="alert-heading fw-bold mb-1">Dukungan Data Kuantitatif (Integrasi LAMTEK)</h6>
+                        <p class="mb-1 small" id="lamtekHelperText">Memuat relasi data...</p>
+                        <!-- Nanti tombol ini memicu fungsi pencarian relasi di sheet IABEExLAMTEK -->
+                        <button class="btn btn-sm btn-outline-primary mt-2 fw-bold bg-white" onclick="cekRelasiLAMTEK()">
+                            <i class="bi bi-magic me-1"></i> Tarik Data dari Simulasi LAMTEK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Informasi Kriteria -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-12">
+                        <div class="bg-light p-3 rounded border">
+                            <div class="row">
+                                <div class="col-md-4 border-end">
+                                    <small class="text-muted fw-bold d-block">Kriteria</small>
+                                    <span id="modalIabeeKriteria" class="fw-bold text-success"></span>
+                                </div>
+                                <div class="col-md-8">
+                                    <small class="text-muted fw-bold d-block">Sub-Kriteria & Sub-sub</small>
+                                    <span id="modalIabeeSubKriteria" class="small d-block"></span>
+                                    <span id="modalIabeeSubSub" class="small text-muted fst-italic d-block mt-1"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evaluasi Form -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6">Kriteria Evaluasi (Instruksi)</label>
+                    <div class="p-3 bg-white border rounded shadow-sm" id="modalIabeeInstruksi" style="font-size: 0.95rem; line-height: 1.5;"></div>
+                </div>
+
+                <!-- Referensi Tabel (Kolom Baru) -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6">Referensi Tabel Suplemen</label>
+                    <div class="p-3 bg-light border rounded shadow-sm" id="modalIabeeRefContainer">
+                        <span id="modalIabeeRef"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6">Hasil Evaluasi (Pilih Salah Satu)</label>
+                    <div class="btn-group w-100 shadow-sm" role="group" id="btnGroupACWD">
+                        <input type="radio" class="btn-check" name="radioACWD" id="radioA" value="A" autocomplete="off">
+                        <label class="btn btn-outline-success fw-bold py-2" for="radioA">A (Acceptable)</label>
+
+                        <input type="radio" class="btn-check" name="radioACWD" id="radioC" value="C" autocomplete="off">
+                        <label class="btn btn-outline-warning text-dark fw-bold py-2" for="radioC">C (Concern)</label>
+
+                        <input type="radio" class="btn-check" name="radioACWD" id="radioW" value="W" autocomplete="off">
+                        <label class="btn btn-outline-orange fw-bold py-2" for="radioW" style="border-color: #fd7e14; color: #fd7e14;">W (Weakness)</label>
+
+                        <input type="radio" class="btn-check" name="radioACWD" id="radioD" value="D" autocomplete="off">
+                        <label class="btn btn-outline-danger fw-bold py-2" for="radioD">D (Deficiency)</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark">Deskripsi Evaluasi / Justifikasi</label>
+                    <textarea class="form-control" id="modalIabeeDeskripsi" rows="6" placeholder="Ketikkan analisis dan justifikasi Anda secara komprehensif di sini..."></textarea>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark">Link Bukti Pendukung (Google Drive / Website)</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                        <input type="url" class="form-control" id="modalIabeeLink" placeholder="https://...">
+                    </div>
+                </div>
+                
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success px-4 fw-bold" id="btnSimpanNilaiIabee">Simpan Evaluasi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Riwayat Simulasi IABEE -->
+<div class="modal fade" id="modalRiwayatIabee" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Riwayat Simulasi IABEE</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>No</th>
+                                <th>Waktu</th>
+                                <th>Pembuat</th>
+                                <th>Nama Simulasi</th>
+                                <th>Prediksi Akreditasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRiwayatIabee" class="text-center">
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pilih Simulasi LAMTEK (Untuk Tarik Data) -->
+<div class="modal fade" id="modalPilihSimulasiLamtek" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-link-45deg me-2"></i>Pilih Sumber Data LAMTEK</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.9rem;">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Jenjang</th>
+                                <th>Nama Simulasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyPilihLamtek" class="text-center">
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

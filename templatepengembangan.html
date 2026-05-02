@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dalam Pengembangan - myDTGD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            /* Background halus agar senada dengan dashboard */
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .card-development {
+            border-radius: 24px;
+            border: none;
+            transition: transform 0.3s ease;
+        }
+
+        .card-development:hover {
+            transform: translateY(-5px);
+        }
+
+        .animate-pulse {
+            animation: pulse 2.5s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.4; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.4; }
+        }
+
+        .btn-custom {
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+    <div class="card card-development text-center p-5 shadow-lg bg-white" style="max-width: 550px;">
+        <div class="mb-4">
+            <div class="bg-primary bg-opacity-10 d-inline-block p-4 rounded-circle">
+                <i class="bi bi-tools text-primary display-3 animate-pulse"></i>
+            </div>
+        </div>
+        
+        <h2 class="fw-bold text-dark mb-2">Simulator AMI</h2>
+        
+        <div class="mb-4">
+            <span class="badge rounded-pill bg-warning text-dark px-3 py-2">
+                <i class="bi bi-cone-striped me-1"></i> Under Construction
+            </span>
+        </div>
+
+        <p class="text-secondary mb-4 px-3">
+            Halaman <strong>Simulator AMI</strong> saat ini sedang dikembangkan untuk sistem pemantauan yang lebih efisien bagi Departemen Teknik Geodesi.
+        </p>
+
+        <div class="progress mb-4" style="height: 10px; border-radius: 10px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 10%" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <hr class="w-25 mx-auto mb-4 opacity-10">
+
+        <p class="small text-muted mb-4">
+            Target Implementasi: <strong>Akhir 2026</strong><br>
+            <span class="opacity-75">DTGD FT UGM</span>
+        </p>
+
+        <div class="d-grid gap-2">
+            <button class="btn btn-primary btn-custom py-2 rounded-pill shadow-sm" onclick="goBack()">
+                <i class="bi bi-arrow-left-circle me-2"></i> Kembali ke Dashboard
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Munculkan SweetAlert saat halaman dimuat
+    window.onload = function() {
+        Swal.fire({
+            title: 'Sistem Sedang Disiapkan',
+            text: 'Simulator AMI sedang dalam tahap pembangunan.',
+            icon: 'info',
+            confirmButtonText: 'Saya Mengerti',
+            confirmButtonColor: '#0d6efd',
+            backdrop: `rgba(13, 110, 253, 0.1)`,
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            }
+        });
+    };
+
+    function goBack() {
+        // Efek loading sebelum pindah halaman (opsional)
+        Swal.fire({
+            title: 'Mengalihkan...',
+            timer: 800,
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        }).then(() => {
+            window.location.href = 'home.html';
+        });
+    }
+</script>
+
+</body>
+</html>
