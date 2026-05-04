@@ -301,16 +301,58 @@ function renderTable() {
 
     document.getElementById("totalSkorDisplay").innerText = totalSkorSimulasi.toFixed(2);
     
-    // Logika Akreditasi Terbaru (Poin 8)
+    // ==========================================
+    // LOGIKA PENGECEKAN SYARAT UNGGUL
+    // ==========================================
+    let minSkorSyaratUnggul = 4.0; // Set ke nilai maksimal dulu
+    let syaratUnggulTerisiSemua = true;
+
+    // Loop data master LAMTEK untuk mengecek indikator Syarat_Unggul
+    rawMasterData.forEach(item => {
+        if (item.Syarat_Unggul === "Ya") {
+            const state = simulationState[item.ID_Indikator]; // Mengambil data nilai yang diisi user
+            
+            // Cek apakah indikator syarat unggul ini sudah dinilai
+            if (!state || state.nilai === undefined || state.nilai === "" || state.nilai === null) {
+                syaratUnggulTerisiSemua = false;
+                minSkorSyaratUnggul = 0; // Jika belum diisi, otomatis gagal syarat unggul
+            } else {
+                const nilaiFloat = parseFloat(state.nilai);
+                // Rekam nilai terkecil dari seluruh indikator syarat unggul
+                if (nilaiFloat < minSkorSyaratUnggul) {
+                    minSkorSyaratUnggul = nilaiFloat;
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // RENDER PREDIKSI AKREDITASI
+    // ==========================================
     const statusDisp = document.getElementById("hasilAkreditasiDisplay");
-    if (totalSkorSimulasi >= 361) {
-        statusDisp.innerHTML = `<span class="badge bg-success fs-5 px-3 py-2">UNGGUL 5 TAHUN</span>`;
-    } else if(totalSkorSimulasi >= 331) {
-        statusDisp.innerHTML = `<span class="badge bg-info text-dark fs-5 px-3 py-2">UNGGUL 3 TAHUN</span>`;
-    } else if(totalSkorSimulasi >= 200) {
-        statusDisp.innerHTML = `<span class="badge bg-primary fs-5 px-3 py-2">TERAKREDITASI</span>`;
-    } else {
-        statusDisp.innerHTML = `<span class="badge bg-danger fs-5 px-3 py-2">TIDAK TERAKREDITASI</span>`;
+    
+    // Syarat 1: Skor >= 361 DAN semua syarat unggul bernilai > 3.5
+    if (totalSkorSimulasi >= 361 && syaratUnggulTerisiSemua && minSkorSyaratUnggul > 3.5) {
+        statusDisp.innerHTML = `<span class="badge bg-success fs-5 px-3 py-2 shadow-sm">UNGGUL 5 TAHUN</span>
+                                <div class="text-success small mt-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Syarat Unggul Terpenuhi (>3.5)</div>`;
+    } 
+    // Syarat 2: Skor >= 331 DAN semua syarat unggul bernilai > 3.0
+    else if (totalSkorSimulasi >= 331 && syaratUnggulTerisiSemua && minSkorSyaratUnggul > 3.0) {
+        statusDisp.innerHTML = `<span class="badge bg-info text-dark fs-5 px-3 py-2 shadow-sm">UNGGUL 3 TAHUN</span>
+                                <div class="text-info small mt-1 fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Syarat Unggul Terpenuhi (>3.0)</div>`;
+    } 
+    // Syarat 3: Skor >= 200 (Tidak peduli syarat unggul terpenuhi atau tidak)
+    else if (totalSkorSimulasi >= 200) {
+        let noteHtml = "";
+        // Beri tahu user kenapa skor tinggi tapi cuma TERAKREDITASI
+        if (totalSkorSimulasi >= 331) {
+            noteHtml = `<div class="text-danger small mt-1 fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Gagal Syarat Unggul (Ada nilai <= 3.0)</div>`;
+        }
+        statusDisp.innerHTML = `<span class="badge bg-primary fs-5 px-3 py-2 shadow-sm">TERAKREDITASI</span>${noteHtml}`;
+    } 
+    // Gagal Akreditasi
+    else {
+        statusDisp.innerHTML = `<span class="badge bg-danger fs-5 px-3 py-2 shadow-sm">TIDAK TERAKREDITASI</span>`;
     }
 }
 
@@ -539,6 +581,9 @@ function setAllQualitativeScores() {
     Swal.fire({icon: 'success', title: 'Berhasil', text: `Semua indikator kualitatif diset ke skor ${val}`, timer: 1500, showConfirmButton: false});
 }
 
+// ==============================================================
+// SIMPAN KE SERVER
+// ==============================================================
 async function saveSimulationToServer() {
     const { value: namaSimulasi } = await Swal.fire({
         title: 'Simpan Simulasi',
@@ -555,8 +600,10 @@ async function saveSimulationToServer() {
     const userSession = JSON.parse(sessionStorage.getItem("user")) || { email: "admin@ugm.ac.id" };
     const totalSkor = parseFloat(document.getElementById("totalSkorDisplay").innerText);
     
-    // MENGAMBIL HASIL AKREDITASI LANGSUNG DARI TEKS DISPLAY
-    const statusText = document.getElementById("hasilAkreditasiDisplay").innerText;
+    // MENGAMBIL HASIL AKREDITASI LANGSUNG DARI BADGE SAJA (Abaikan div keterangan di bawahnya)
+    const displayContainer = document.getElementById("hasilAkreditasiDisplay");
+    const badgeElement = displayContainer.querySelector(".badge");
+    const statusText = badgeElement ? badgeElement.innerText.trim() : displayContainer.innerText.trim();
     
     // MENGAMBIL JENJANG YANG SEDANG AKTIF
     const currentJenjang = document.querySelector('input[name="btnjenjang"]:checked').value;
@@ -796,7 +843,11 @@ function exportToCSV() {
 
     // 4. Tambahkan Baris Total dan Prediksi di bawah tabel
     const totalSkor = document.getElementById("totalSkorDisplay").innerText;
-    const hasilAkreditasi = document.getElementById("hasilAkreditasiDisplay").innerText;
+    
+    // EKSTRAK TEKS PREDIKSI HANYA DARI BADGE
+    const displayContainer = document.getElementById("hasilAkreditasiDisplay");
+    const badgeElement = displayContainer.querySelector(".badge");
+    const hasilAkreditasi = badgeElement ? badgeElement.innerText.trim() : displayContainer.innerText.trim();
 
     csvContent += `\n"","","","","","","TOTAL SKOR SIMULASI:",${escapeCSV(totalSkor)}\n`;
     csvContent += `"","","","","","","PREDIKSI AKREDITASI:",${escapeCSV(hasilAkreditasi)}\n`;
