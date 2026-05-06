@@ -228,14 +228,21 @@ function showSertifikat(imgUrl, driveUrl, title) {
 // ==========================================
 // FETCH MASTER DATA & RENDER CHARTS/TABLE
 // ==========================================
+let simulatedLinkDB = {};
 async function fetchDashboardData() {
     try {
-        const [resIabee, resS1, resS2, resS3] = await Promise.all([
+        const [resIabee, resS1, resS2, resS3, resLinks] = await Promise.all([
             fetch(`${GAS_AKURASI}?action=getMaster&sheetName=IABEE`).then(r => r.json()),
             fetch(`${GAS_AKURASI}?action=getMaster&sheetName=LAMTEK_Sarjana`).then(r => r.json()),
             fetch(`${GAS_AKURASI}?action=getMaster&sheetName=LAMTEK_Magister`).then(r => r.json()),
-            fetch(`${GAS_AKURASI}?action=getMaster&sheetName=LAMTEK_Doktor`).then(r => r.json())
+            fetch(`${GAS_AKURASI}?action=getMaster&sheetName=LAMTEK_Doktor`).then(r => r.json()),
+            fetch(`${GAS_AKURASI}?action=getLinkPrioritas`).then(r => r.json())
         ]);
+
+        // Masukkan hasil fetch ke variabel global
+        if (resLinks && resLinks.status === "success") {
+            simulatedLinkDB = resLinks.data;
+        }
 
         const dashboardExtrasEl = document.getElementById("dashboardExtras");
         if (dashboardExtrasEl) {
@@ -318,35 +325,41 @@ function renderPieCharts(s1, s2, s3) {
 }
 
 // ==========================================
-// TABEL PRIORITAS (DENGAN FILTER & PAGINATION)
+// TABEL PRIORITAS (DENGAN FILTER, PAGINATION, & LINK)
 // ==========================================
 let globalPriorityData = [];
 let currentPriorityPage = 1;
-const priorityPerPage = 5; // Tampilkan 5 baris per halaman
+const priorityPerPage = 5;
 
 function renderPriorityTable(iabee, s1, s2, s3) {
     globalPriorityData = [];
 
     // Kumpulkan IABEE (Tinggi)
+    // Mengambil Referensi dari kolom G: Referensi_Tabel_Suplemen
     iabee.filter(x => x.Bobot_Perhatian === 'Tinggi').forEach(item => {
         globalPriorityData.push({ 
+            id_komponen: item.ID_Kriteria, 
             instrumen: 'IABEE', 
             badge: 'bg-success', 
             search: `${item.Sub_Kriteria} ${item.Kriteria_Evaluasi}`.toLowerCase(), 
             title: `[${item.ID_Kriteria}] ${item.Sub_Kriteria}`, 
-            desc: item.Kriteria_Evaluasi 
+            desc: item.Kriteria_Evaluasi,
+            referensi: item.Referensi_Tabel_Suplemen || "" // <== Tambahan Referensi
         });
     });
 
     // Kumpulkan LAMTEK (Prioritas 'Ya')
+    // Mengambil Referensi dari kolom J: No_Tabel_LKPS
     const processLamtek = (data, badgeClass, title) => {
         data.filter(x => x.Prioritas === 'Ya').forEach(item => {
             globalPriorityData.push({ 
+                id_komponen: item.ID_Indikator, 
                 instrumen: title, 
                 badge: badgeClass, 
                 search: `${item.Kriteria} ${item.Indikator}`.toLowerCase(), 
                 title: `[${item.ID_Indikator}] ${item.Kriteria}`, 
-                desc: item.Indikator 
+                desc: item.Indikator,
+                referensi: item.No_Tabel_LKPS || "" // <== Tambahan Referensi
             });
         });
     };
@@ -355,11 +368,9 @@ function renderPriorityTable(iabee, s1, s2, s3) {
     processLamtek(s2, "bg-info text-dark", "LAMTEK S2");
     processLamtek(s3, "bg-dark", "LAMTEK S3");
 
-    // Daftarkan Event Listener untuk Search dan Filter
     document.getElementById('filterPriorityInstrumen').addEventListener('change', () => { currentPriorityPage = 1; updatePriorityView(); });
     document.getElementById('searchPriority').addEventListener('input', () => { currentPriorityPage = 1; updatePriorityView(); });
 
-    // Render tabel untuk pertama kali
     updatePriorityView();
 }
 
@@ -383,35 +394,90 @@ function updatePriorityView() {
 
     // 3. Render HTML Tabel
     const tbody = document.getElementById("tbodyPriorityTable");
+    const isAdmin = user.role === "Admin"; // Cek Role
     let html = "";
+    
     paginated.forEach(item => {
+        const existingUrl = simulatedLinkDB[item.id_komponen] || "";
+        
+        // Render Tombol Data Bukti
+        let btnBukaHtml = "";
+        if (existingUrl) {
+            btnBukaHtml = `<a href="${existingUrl}" target="_blank" class="btn btn-sm btn-success shadow-sm mb-1 fw-bold w-100"><i class="bi bi-box-arrow-up-right me-1"></i>Buka Data</a>`;
+        } else {
+            btnBukaHtml = `<span class="badge bg-secondary mb-1 w-100 py-2">Belum Tersedia</span>`;
+        }
+
+        // Render Tombol Set Link (Khusus Admin)
+        let btnAdminHtml = "";
+        if (isAdmin) {
+            btnAdminHtml = `<button class="btn btn-sm btn-outline-primary mt-1 w-100" onclick="openModalLinkPrioritas('${item.id_komponen}', '${existingUrl}')"><i class="bi bi-pencil-square me-1"></i>Set Link</button>`;
+        }
+
+        // =====================================
+        // LOGIKA RENDER KOLOM REFERENSI (BARU)
+        // =====================================
+        let refHtml = '<span class="text-muted small fst-italic">-</span>';
+        if (item.referensi) {
+            let refs = item.referensi.toString().split(',');
+            refHtml = `<div class="d-flex flex-column gap-1 align-items-center">` + 
+                      refs.map(r => {
+                          let text = r.trim();
+                          let label = text;
+                          let url = "#";
+                          
+                          if (text.includes('|')) {
+                              let parts = text.split('|');
+                              label = parts[0].trim();
+                              url = parts[1].trim();
+                          } else if (text.toLowerCase().startsWith("http")) {
+                              label = "Buka Referensi";
+                              url = text;
+                          }
+
+                          if (url !== "#") {
+                              return `<a href="${url}" target="_blank" class="badge bg-secondary text-wrap text-decoration-none shadow-sm" style="line-height: 1.4;" title="Buka Spreadsheet"><i class="bi bi-file-earmark-spreadsheet me-1"></i>${label}</a>`;
+                          } else {
+                              return `<span class="badge bg-secondary text-wrap shadow-sm" style="line-height: 1.4;">${label}</span>`;
+                          }
+                      }).join('') + 
+                      `</div>`;
+        }
+
+        // Tambahkan kolom refHtml ke dalam baris tabel
         html += `<tr>
-            <td class="text-center"><span class="badge ${item.badge} w-100 shadow-sm py-2">${item.instrumen}</span></td>
+            <td class="text-center align-middle"><span class="badge ${item.badge} w-100 shadow-sm py-2">${item.instrumen}</span></td>
             <td><strong class="d-block text-dark">${item.title}</strong><span class="text-muted small">${item.desc}</span></td>
+            <td class="align-middle text-center">${refHtml}</td>
+            <td class="align-middle">
+                <div class="d-flex flex-column align-items-center">
+                    ${btnBukaHtml}
+                    ${btnAdminHtml}
+                </div>
+            </td>
         </tr>`;
     });
-    if (html === "") html = `<tr><td colspan="2" class="text-center text-muted py-4">Tidak ada data ditemukan.</td></tr>`;
+    
+    // Perhatikan colspan diubah dari 3 menjadi 4
+    if (html === "") html = `<tr><td colspan="4" class="text-center text-muted py-4">Tidak ada data ditemukan.</td></tr>`;
     tbody.innerHTML = html;
 
-    // 4. Render HTML Navigasi Paginasi (< 1 2 3 >)
+    // 4. Render HTML Navigasi Paginasi
     const pagUl = document.getElementById("priorityPagination");
     let pagHtml = "";
     
-    // Tombol Prev
     pagHtml += `<li class="page-item ${currentPriorityPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePriorityPage(${currentPriorityPage - 1}, event)">&laquo;</a>
+                    <a class="page-link shadow-sm" href="#" onclick="changePriorityPage(${currentPriorityPage - 1}, event)">&laquo;</a>
                 </li>`;
     
-    // Angka Halaman
     for (let i = 1; i <= totalPages; i++) {
         pagHtml += `<li class="page-item ${currentPriorityPage === i ? 'active' : ''}">
-                        <a class="page-link" href="#" onclick="changePriorityPage(${i}, event)">${i}</a>
+                        <a class="page-link shadow-sm" href="#" onclick="changePriorityPage(${i}, event)">${i}</a>
                     </li>`;
     }
 
-    // Tombol Next
     pagHtml += `<li class="page-item ${currentPriorityPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePriorityPage(${currentPriorityPage + 1}, event)">&raquo;</a>
+                    <a class="page-link shadow-sm" href="#" onclick="changePriorityPage(${currentPriorityPage + 1}, event)">&raquo;</a>
                 </li>`;
     
     pagUl.innerHTML = pagHtml;
@@ -422,3 +488,55 @@ function changePriorityPage(page, e) {
     currentPriorityPage = page;
     updatePriorityView();
 }
+
+// ==========================================
+// KELOLA LINK PRIORITAS (HANYA ADMIN)
+// ==========================================
+window.openModalLinkPrioritas = function(idKomponen, currentUrl) {
+    document.getElementById("displayIdKomponen").innerText = idKomponen;
+    document.getElementById("inputIdKomponen").value = idKomponen;
+    document.getElementById("inputUrlData").value = currentUrl || "";
+    
+    new bootstrap.Modal(document.getElementById('modalLinkPrioritas')).show();
+};
+
+window.saveLinkPrioritas = async function() {
+    const idKomponen = document.getElementById("inputIdKomponen").value;
+    const urlBaru = document.getElementById("inputUrlData").value.trim();
+    const currentUser = JSON.parse(sessionStorage.getItem("user")) || { email: "admin" };
+
+    Swal.fire({ title: 'Menyimpan Tautan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    try {
+        const payload = {
+            action: "saveLinkPrioritas",
+            idKomponen: idKomponen,
+            urlData: urlBaru,
+            emailUser: currentUser.email
+        };
+
+        const response = await fetch(GAS_AKURASI, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            if (urlBaru === "") {
+                delete simulatedLinkDB[idKomponen];
+            } else {
+                simulatedLinkDB[idKomponen] = urlBaru;
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('modalLinkPrioritas')).hide();
+            updatePriorityView();
+            
+            Swal.fire({ icon: 'success', title: 'Tersimpan!', text: 'Tautan data bukti berhasil diperbarui.', timer: 1500, showConfirmButton: false });
+        } else {
+            throw new Error("Respon server gagal.");
+        }
+    } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Gagal Menyimpan', text: 'Terjadi kesalahan saat menghubungi server.' });
+    }
+};

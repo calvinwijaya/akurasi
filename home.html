@@ -160,7 +160,9 @@
                                 <thead class="table-dark text-center" style="position: sticky; top: 0; z-index: 1;">
                                     <tr>
                                         <th width="15%">Instrumen</th>
-                                        <th width="85%">Kriteria / Indikator Evaluasi</th>
+                                        <th width="50%">Kriteria / Indikator Evaluasi</th>
+                                        <th width="20%">Referensi Tabel</th>
+                                        <th width="15%">Data Bukti</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyPriorityTable">
@@ -190,6 +192,34 @@
                         <div class="modal-footer">
                             <a href="" id="modalSertifikatDownload" target="_blank" class="btn btn-primary">Lihat Original & Unduh</a>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Input Link Prioritas (Hanya untuk Admin) -->
+            <div class="modal fade" id="modalLinkPrioritas" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content shadow-lg border-0">
+                        <div class="modal-header bg-primary text-white border-0">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-link-45deg me-2"></i>Kelola Link Data Bukti</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4 bg-light">
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold text-uppercase mb-1">ID Komponen</label>
+                                <div id="displayIdKomponen" class="fw-bold text-dark font-monospace"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold text-uppercase mb-2">Tautan (URL) Data / Folder</label>
+                                <input type="hidden" id="inputIdKomponen">
+                                <input type="url" id="inputUrlData" class="form-control form-control-lg shadow-sm" placeholder="https://drive.google.com/...">
+                                <small class="text-muted mt-2 d-block">Kosongkan kolom ini jika ingin menghapus tautan.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-3 bg-white">
+                            <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-primary fw-bold shadow-sm" onclick="saveLinkPrioritas()"><i class="bi bi-save me-1"></i>Simpan Tautan</button>
                         </div>
                     </div>
                 </div>

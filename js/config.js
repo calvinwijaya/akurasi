@@ -1,3 +1,3 @@
 const GAS_LOGIN = "https://script.google.com/macros/s/AKfycbyAb8H4rwqNyHntKIhqNroYhSTpTPQlpNHu01_O-NNru0ocLq9QM_h05ZzGRAaf2uvExA/exec";
 const GAS_STATUSAKRE = "https://script.google.com/macros/s/AKfycbxu0gkRhmO81A5r_b5XSZj119Rd4KSmn1W7Sqggvzk0evR5oeRREcYRJlCFlQOkZMOm/exec";
-const GAS_AKURASI = "https://script.google.com/macros/s/AKfycbwOTylnSmQIycbU3GTMUhaZVlPHBjD7TwILlrqfQNjiOMeIUxuuFPrWrveOTim67DHgPQ/exec";
+const GAS_AKURASI = "https://script.google.com/macros/s/AKfycbwR-gY4VHrDNV3-xh5sHKnqpjHuHVmashilJ8xhjPS6Y3HkzSrJjKkv9cVbKZ6yI5RG1g/exec";
