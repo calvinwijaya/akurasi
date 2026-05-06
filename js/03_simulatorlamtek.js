@@ -266,10 +266,25 @@ function renderTable() {
             // Logika pemisahan badge Referensi LKPS
             let refLkpsHtml = '-';
             if (ind.No_Tabel_LKPS) {
-                // Diubah menjadi string dulu untuk jaga-jaga jika isinya angka murni, lalu split
                 let refs = ind.No_Tabel_LKPS.toString().split(',');
                 refLkpsHtml = `<div class="d-flex flex-wrap justify-content-center gap-1">` + 
-                              refs.map(r => `<span class="badge bg-dark text-wrap" style="line-height: 1.4;">${r.trim()}</span>`).join('') + 
+                              refs.map(r => {
+                                  let item = r.trim();
+                                  let label = item;
+                                  let url = "#"; // Default jika tidak ada link
+
+                                  // Cek apakah menggunakan format Nama|Link
+                                  if (item.includes('|')) {
+                                      let parts = item.split('|');
+                                      label = parts[0].trim();
+                                      url = parts[1].trim();
+                                  } else if (item.toLowerCase().startsWith("http")) {
+                                      label = "Buka Tabel";
+                                      url = item;
+                                  }
+
+                                  return `<a href="${url}" target="_blank" class="badge bg-dark text-wrap text-decoration-none shadow-sm" style="line-height: 1.4;" title="Buka Sheet ${label}"><i class="bi bi-file-earmark-spreadsheet me-1"></i>${label}</a>`;
+                              }).join('') + 
                               `</div>`;
             }
             tr += `<td class="text-center align-middle">${refLkpsHtml}</td>`;
@@ -383,7 +398,22 @@ function openModal(id_indikator) {
     if (indData.No_Tabel_LKPS) {
         let refs = indData.No_Tabel_LKPS.toString().split(',');
         refHtmlModal = `<div class="d-flex flex-wrap gap-2">` + 
-                       refs.map(r => `<span class="badge bg-dark fs-6 text-wrap shadow-sm" style="line-height: 1.5;">${r.trim()}</span>`).join('') + 
+                       refs.map(r => {
+                           let item = r.trim();
+                           let label = item;
+                           let url = "#";
+
+                           if (item.includes('|')) {
+                               let parts = item.split('|');
+                               label = parts[0].trim();
+                               url = parts[1].trim();
+                           } else if (item.toLowerCase().startsWith("http")) {
+                               label = "Buka Tabel";
+                               url = item;
+                            Part}
+
+                           return `<a href="${url}" target="_blank" class="badge bg-dark fs-6 text-wrap text-decoration-none shadow-sm" style="line-height: 1.5;"><i class="bi bi-box-arrow-up-right me-2"></i>${label}</a>`;
+                       }).join('') + 
                        `</div>`;
     }
     document.getElementById("modalRefLKPSContainer").innerHTML = refHtmlModal;

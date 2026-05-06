@@ -178,13 +178,28 @@ function renderIabeeTable() {
                 }
                 
                 tr += `<td><div style="white-space: pre-line;">${item.Kriteria_Evaluasi}</div></td>`;
+                // Logika Referensi Tabel Suplemen (Direct Sheet Link)
                 let refHtml = '-';
                 if (item.Referensi_Tabel_Suplemen) {
-                    // Pecah string berdasarkan koma, bersihkan spasi berlebih, lalu map ke dalam badge
                     let refs = item.Referensi_Tabel_Suplemen.split(',');
                     refHtml = `<div class="d-flex flex-wrap justify-content-center gap-1">` + 
-                            refs.map(r => `<span class="badge border border-dark text-dark text-wrap" style="line-height: 1.4;">${r.trim()}</span>`).join('') + 
-                            `</div>`;
+                              refs.map(r => {
+                                  let text = r.trim();
+                                  let label = text;
+                                  let url = "#";
+                                  
+                                  if (text.includes('|')) {
+                                      let parts = text.split('|');
+                                      label = parts[0].trim();
+                                      url = parts[1].trim();
+                                  } else if (text.toLowerCase().startsWith("http")) {
+                                      label = "Buka Tabel";
+                                      url = text;
+                                  }
+
+                                  return `<a href="${url}" target="_blank" class="badge border border-dark text-dark text-wrap text-decoration-none shadow-sm" style="line-height: 1.4;" title="Buka Referensi"><i class="bi bi-file-earmark-spreadsheet me-1"></i>${label}</a>`;
+                              }).join('') + 
+                              `</div>`;
                 }
                 tr += `<td class="text-center align-middle">${refHtml}</td>`;
                 tr += `<td class="text-center align-middle">${badgeHtml}</td>`;
@@ -260,7 +275,22 @@ function openIabeeModal(id_kriteria) {
     if (itemData.Referensi_Tabel_Suplemen) {
         let refs = itemData.Referensi_Tabel_Suplemen.split(',');
         refHtmlModal = `<div class="d-flex flex-wrap gap-2">` + 
-                       refs.map(r => `<span class="badge bg-secondary fs-6 text-wrap shadow-sm" style="line-height: 1.5; text-align: left;">${r.trim()}</span>`).join('') + 
+                       refs.map(r => {
+                           let text = r.trim();
+                           let label = text;
+                           let url = "#";
+                           
+                           if (text.includes('|')) {
+                               let parts = text.split('|');
+                               label = parts[0].trim();
+                               url = parts[1].trim();
+                           } else if (text.toLowerCase().startsWith("http")) {
+                               label = "Buka Tabel";
+                               url = text;
+                           }
+
+                           return `<a href="${url}" target="_blank" class="badge bg-secondary fs-6 text-wrap text-decoration-none shadow-sm" style="line-height: 1.5; text-align: left;"><i class="bi bi-box-arrow-up-right me-2"></i>${label}</a>`;
+                       }).join('') + 
                        `</div>`;
     }
     document.getElementById("modalIabeeRef").innerHTML = refHtmlModal;
